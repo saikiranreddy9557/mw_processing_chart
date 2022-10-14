@@ -1,0 +1,38 @@
+2022-10-14 13:33:14,002 - 8924 - INFO - started reading files from the box folder
+2022-10-14 13:33:14,960 - 8924 - INFO - making connection to box folder
+2022-10-14 13:33:20,318 - 8924 - INFO - started reading files from the box folder id 177293289704
+2022-10-14 13:33:29,609 - 8924 - INFO - completed reading files from the box folder content form folder-id 177293289704
+2022-10-14 13:33:30,288 - 8924 - INFO - started reading data from the id- 1039946282500 file-name -MW --423896001-1   7F High Output R0.pdf vendor-name -test-pdf-1
+2022-10-14 13:33:47,045 - 8924 - INFO - completed reading data from the file-id- 1039946282500 file-name -MW --423896001-1   7F High Output R0.pdf vendor-name -test-pdf-1
+2022-10-14 13:33:47,360 - 8924 - INFO - psuhed data  from the file-id- 1039946282500 file-name -MW --423896001-1   7F High Output R0.pdf vendor-name -test-pdf-1 to dynamo db
+2022-10-14 13:33:50,196 - 8924 - INFO - succefull read and upload of data
+2022-10-14 13:33:50,691 - 8924 - INFO - started reading data from the id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:33:57,677 - 8924 - INFO - completed reading data from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:33:58,003 - 8924 - INFO - psuhed data  from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1 to dynamo db
+2022-10-14 13:33:58,795 - 8924 - INFO - succefull read and upload of data
+2022-10-14 13:34:00,297 - 8924 - INFO - making connection to box folder
+2022-10-14 13:34:01,622 - 8924 - INFO - started reading files from the box folder id 177294206571
+2022-10-14 13:34:04,663 - 8924 - INFO - completed reading files from the box folder content form folder-id 177294206571
+2022-10-14 13:34:05,866 - 8924 - INFO - started reading data from the id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:34:11,458 - 8924 - INFO - completed reading data from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:34:11,802 - 8924 - INFO - psuhed data  from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1 to dynamo db
+2022-10-14 13:34:12,456 - 8924 - INFO - succefull read and upload of data
+2022-10-14 13:34:58,994 - 8172 - INFO - started reading files from the box folder
+2022-10-14 13:34:58,994 - 8172 - INFO - making connection to box folder
+2022-10-14 13:34:59,056 - 8172 - INFO - started reading files from the box folder id 177293289704
+2022-10-14 13:35:01,040 - 8172 - INFO - completed reading files from the box folder content form folder-id 177293289704
+2022-10-14 13:35:01,041 - 8172 - INFO - started reading data from the id- 1039946282500 file-name -MW --423896001-1   7F High Output R0.pdf vendor-name -test-pdf-1
+2022-10-14 13:35:03,756 - 8172 - INFO - completed reading data from the file-id- 1039946282500 file-name -MW --423896001-1   7F High Output R0.pdf vendor-name -test-pdf-1
+2022-10-14 13:35:03,757 - 8172 - INFO - psuhed data  from the file-id- 1039946282500 file-name -MW --423896001-1   7F High Output R0.pdf vendor-name -test-pdf-1 to dynamo db
+2022-10-14 13:35:03,757 - 8172 - INFO - succefull read and upload of data
+2022-10-14 13:35:03,757 - 8172 - INFO - started reading data from the id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:35:06,272 - 8172 - INFO - completed reading data from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:35:06,272 - 8172 - INFO - psuhed data  from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1 to dynamo db
+2022-10-14 13:35:06,272 - 8172 - INFO - succefull read and upload of data
+2022-10-14 13:35:06,272 - 8172 - INFO - making connection to box folder
+2022-10-14 13:35:06,303 - 8172 - INFO - started reading files from the box folder id 177294206571
+2022-10-14 13:35:08,347 - 8172 - INFO - completed reading files from the box folder content form folder-id 177294206571
+2022-10-14 13:35:08,347 - 8172 - INFO - started reading data from the id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:35:10,487 - 8172 - INFO - completed reading data from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1
+2022-10-14 13:35:10,487 - 8172 - INFO - psuhed data  from the file-id- 1039956319829 file-name -MW---423839925-2--7F HIFLOW R0  --1.pdf vendor-name -test-pdf-1 to dynamo db
+2022-10-14 13:35:10,487 - 8172 - INFO - succefull read and upload of data
