@@ -90,7 +90,7 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
       compressor_pn = pdf.iloc[0][1]
       
       po_num =  pdf.columns[5].split("\r")[0]
-      print(po_num)
+      
       try:
         int(po_num)
       except :

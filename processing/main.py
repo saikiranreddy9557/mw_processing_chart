@@ -22,7 +22,7 @@ def main():
             folder_content = box_obj.box_read_folder_content(box_con,each_folder_id)
             # retry =0
             #dynamo_obj = AWS_Dynamo_Client()
-            print(folder_content)
+            
 
             for each_pdf_file_info in folder_content["pdf"]:
                 # retry = 0
@@ -31,14 +31,12 @@ def main():
                 #file_path,file_meta_data={file_id ,file_name,folder_name,created_at,file_name}
                 pdf_file_path ,file_data= box_obj.download_file(box_con,each_pdf_file_info)
                 
-                print("pdf_path")
-                print(pdf_file_path)
+              
 
                 #returns dict containign all the data in file,file_path
                 file_data,file_path = extract_data_from_pdf(pdf_file_path,folder_name=file_data["folder_name"],file_name=file_data["file_name"],created_at=file_data["created_at"])
                 
-                print(file_data)
-                print(file_path)
+            
                 #load the data to dynamodb table
 
                 # dynamo_obj.push_data(file_data)
@@ -57,15 +55,12 @@ def main():
                 #file_path,file_meta_data={file_id ,file_name,folder_name,created_at,file_name}
                 excel_file_path ,file_data= box_obj.download_file(box_con,each_excel_file_info)
       
-                print(excel_file_path)
+              
 
                 #returns dict containign all the data in file,file_path
                 file_data,file_path = extract_data_from_excel(excel_file_path,folder_name=file_data["folder_name"],file_name=file_data["file_name"],created_at=file_data["created_at"])
                 
-                print(file_data)
-                for key in file_data.keys():
-                    print(key)
-                print(file_path)
+               
 
                 #load the data to dynamodb table
 

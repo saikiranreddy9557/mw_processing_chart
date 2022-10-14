@@ -8,7 +8,7 @@ import sys
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 
-print(BASE_DIR)
+# print(BASE_DIR)
 
 sys.path.append(BASE_DIR)
 # sys.path.append( '.' )
@@ -79,23 +79,23 @@ class AWS_Dynamo_Client:
                     'content': 'some-content',
                 }
             response = table.put_item(Item=item)
-            print(response)
+            # print(response)
 
-            print("upload success")
+            # print("upload success")
 
             return True
         except Exception as e:
             print(e)
             return False     
-acces_key = config.access_key
-secret_key =config.secret_key
-print(acces_key,secret_key)
-obj =AWS_Dynamo_Client(access_key_id=config.access_key,secret_access_key=config.secret_key,region_name=config.region)
-# obj.push_data
-# obj.dynamo_client
-# ddb_exceptions = obj.dynamo_client.exceptions
+# acces_key = config.access_key
+# secret_key =config.secret_key
+# print(acces_key,secret_key)
+# obj =AWS_Dynamo_Client(access_key_id=config.access_key,secret_access_key=config.secret_key,region_name=config.region)
+# # obj.push_data
+# # obj.dynamo_client
+# # ddb_exceptions = obj.dynamo_client.exceptions
 
-obj.push_data("sa")
+# obj.push_data("sa")
 # print(ddb_exceptions.messsage)
 
 

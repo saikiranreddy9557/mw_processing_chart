@@ -74,7 +74,7 @@ class BOX_UTILS:
         try:
             items = user_client.folder(folder_id=folder_id).get_items()
             for item in items:
-                print(f'{item.type.capitalize()} {item.id} is named "{item.name}"')
+                # print(f'{item.type.capitalize()} {item.id} is named "{item.name}"')
                 if item.name[-3:] == "pdf":
                     file_ids["pdf"].append((item.id,item.name,folder_name)) 
                 if item.name[-4:] == "xlsx":
@@ -101,7 +101,6 @@ class BOX_UTILS:
             file_meta_data["file_id"]=file_id
             file_meta_data["file_name"]=file_name
             file_meta_data["folder_name"]=folder_name
-            print(files_meta_data["content_created_at"])
             file_meta_data["created_at"]=files_meta_data["content_created_at"]
             file_meta_data["file_name"]=file_info.name
 
@@ -112,7 +111,7 @@ class BOX_UTILS:
             print(e)
        
         try:
-            print(file_name[-4:])
+            
             if file_name[-4:] == "xlsx":
                 excel_file_path = BASE_PATH+r"\files\excel\{}".format(file_name)
                 with open(excel_file_path, 'wb') as file:
