@@ -126,6 +126,86 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
 
 
 
+def pre_processing_pdf_dict(data:dict):
+
+    try:
+
+      data["BladeData"]= []
+      if data["PONumber"] == None:
+          # print(dic_val["Serial Number"])
+          col_list = ["PositionNumber","Moment","TotalWeight","Reaction","PartNumber"]
+          for current_index in range(len(data['SerialNumber'])):
+              temp_dict = {}
+              temp_dict["PositionNumber"]=data["PositionNumber"][current_index]
+              temp_dict["SerialNumber"]=data["SerialNumber"][current_index]
+              temp_dict["MOMENT"]=data["Moment"][current_index]
+              temp_dict["TotalWeight"]=data["TotalWeight"][current_index]
+              temp_dict["Reaction"]=data["Reaction"][current_index]
+              temp_dict["PartNumber"]=data["PartNumber"][current_index]
+              data["BladeData"].append(temp_dict)
+          data["SerialNumber"] = str(data.pop("SerialNumber"))
+
+          for each_col in col_list:
+            
+              del data[each_col]
+
+          return data
+
+      if data["PONumber"]:
+          # print(dic_val["Serial Number"])
+          col_list = ["PositionNumber","Moment","TotalWeight","Reaction","PartNumber"]
+          for current_index in range(len(data['SerialNumber'])):
+              temp_dict = {}
+              temp_dict["PositionNumber"]=data["PositionNumber"][current_index]
+              temp_dict["SerialNumber"]=data["SerialNumber"][current_index]
+              temp_dict["MOMENT"]=data["Moment"][current_index]
+              temp_dict["TotalWeight"]=data["TotalWeight"][current_index]
+              temp_dict["Reaction"]=data["Reaction"][current_index]
+              temp_dict["PartNumber"]=data["PartNumber"][current_index]
+              data["BladeData"].append(temp_dict)
+          data["SerialNumber"] = str(data.pop("SerialNumber"))
+
+          for each_col in col_list:
+            
+              del data[each_col]
+
+          return data
+    except Exception as e:
+      print(e)
+      return False
+
+
+
+def pre_processing_excel_dict(data:dict):
+
+    try:
+    
+        data["BladeData"]= []
+        # print(dic_val["Serial Number"])
+        col_list = ["Weight No","Blade Type","Design Weight","Blade Root Weight","Blade Leaf Weight","Actual Weight","Actual Moment"]
+        for current_index in range(len(data['blade sn'])):
+            temp_dict = {}
+            temp_dict["WeightNo"]=data["Weight No"][current_index]
+            temp_dict["BladeType"]=data["Blade Type"][current_index]
+            temp_dict["DesignWeight"]=data["Design Weight"][current_index]
+            temp_dict["BladeRootWeight"]=data["Blade Root Weight"][current_index]
+            temp_dict["BladeLeafWeight"]=data["Blade Leaf Weight"][current_index]
+            temp_dict["ActualWeight"]=data["Actual Weight"][current_index]
+            temp_dict["ActualMoment"]=data["Actual Moment"][current_index]
+            temp_dict["BladeSerialNumber"]=data["blade sn"][current_index]
+            data["BladeData"].append(temp_dict)
+        data["SerialNumber"] = str(data.pop("blade sn"))
+
+        for each_col in col_list:
+            
+            del data[each_col]
+
+        return data
+    except Exception as e:
+        print(e)
+        return False
+
+      
 def delete_file(file_path):
   """[delete file ]
   Args:
