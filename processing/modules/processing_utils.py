@@ -3,10 +3,15 @@ import pandas as pd
 import json
 import tabula
 import pathlib
+import uuid
+
+import time
+
+
 
 
 # excel_file_path,folder_name,file_name,created_by,created_at
-def extract_data_from_excel(excel_file_path,folder_name= None,file_name=None,created_at =None,created_by = None ):
+def extract_data_from_excel(excel_file_path,folder_name= None,file_name=None,created_at ="2022-10-14 13:33:29",created_by = "2022-10-14 13:33:29" ):
   """[extract data from the excel file ]
   Args:
       excel_file_path ([str]): [file path to excel]
@@ -46,11 +51,21 @@ def extract_data_from_excel(excel_file_path,folder_name= None,file_name=None,cre
       t2.rename(columns = {'叶片钢印号[Steel Seal No.]':'blade sn'}, inplace = True)
       rename_dict = {'称重编号[Weight No.]':'Weight No','叶片类型[Blade Type]':'Blade Type','设计重量(克)[Design Weight](g)':'Design Weight','叶根重量(克)[Blade Root Weight]（g)':'Blade Root Weight','叶冠重量(克)[Blade Leaf Weight]（g)':'Blade Leaf Weight','实测重量(克)[Actual Weight]（g)':'Actual Weight','实测力矩(克·英寸)[Actual Moment](g·inch)':'Actual Moment'}
       t2.rename(columns = rename_dict , inplace = True)
-    
-      #creating new dict with first sheet values
-      new_dict = {"chart file name": file_name,"vendor name" : folder_name, "chart date " : created_at,"frame stage ": stage,"blade pn":blade_pn,"compressor pn": compressor_pn,"PO Number":po_num}   
       
 
+
+      #creating new dict with first sheet values
+      #new_dict = {"chart file name": file_name,"vendor name" : folder_name, "chart date " : created_at,"frame stage ": stage,"blade pn":blade_pn,"compressor pn": compressor_pn,"PO Number":po_num}   
+      
+      hashId= str(uuid.uuid4())
+      userName = "MWCompressorBlades"
+      processedTimestamp = int(time.time())
+
+
+     
+
+      # folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2"
+      new_dict = {"hashId":hashId,"userName":userName,"processedTimestamp":processedTimestamp,"ChartFileName": file_name,"VendorName" : folder_name, "ChartDate " : created_at,"FrameStage ": stage,"BladePartNumber":blade_pn,"CompressorPartNumber": compressor_pn,"PONumber":po_num}
 
       #convert df to dict
       t2_dict = t2.to_dict('list')
@@ -65,11 +80,7 @@ def extract_data_from_excel(excel_file_path,folder_name= None,file_name=None,cre
     print("file is not in desierd format")
     return False
 
-
-
-
-# pdf_file_path,folder_name,file_name,created_by,created_at
-def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_at=None,created_by=None):
+def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_at="2022-10-14 13:33:29",created_by=None):
    
   """[extracts data from the pdf files]
   Returns:
@@ -90,26 +101,40 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
       compressor_pn = pdf.iloc[0][1]
       
       po_num =  pdf.columns[5].split("\r")[0]
-      
-      try:
-        int(po_num)
-      except :
-        po_num = None
-
       t2 = pdf[5:].copy()
       
-      #rename of columns
-      rename_dict = {'GE叶片名称:\rStages':'Position Number','7F HIFLOW R0':'Serial Number','组别号:\rWTB Group NO.':'MOMENT','P1':'TOTAL WT','旋向\rDIRETION OF\rROTATION':'REACTION','CW':'Part Number'}
-      t2.rename(columns = rename_dict , inplace = True)
+      try:
+        po_num = int(po_num)
+      except:
+        po_num = None
+      if po_num:
+        #rename of columns
+        
+        rename_dict = {'GE叶片名称:\rStages':'PositionNumber','7F High Output R0':'SerialNumber','组别号:\rWTB Group NO.':'Moment','Y1-1':'TotalWeight','423896001\rline 1':'PartNumber','PO:':'Reaction'}                          
+        t2.rename(columns = rename_dict , inplace = True)
+        
+      else:
+        po_num = None
+        #rename of columns
+        rename_dict = {'GE叶片名称:\rStages':'PositionNumber','7F HIFLOW R0':'SerialNumber','组别号:\rWTB Group NO.':'Moment','P1':'TotalWeight','旋向\rDIRETION OF\rROTATION':'Reaction','CW':'PartNumber'}
+        t2.rename(columns = rename_dict , inplace = True)   
+      
 
       #selecting only required columns
       df_new = t2.iloc[:, [0,1,2,3,4,5]]
 
       #convert dataframe into dict
       t2_dict = df_new.to_dict('list')
+      
+      hashId= str(uuid.uuid4())
+      userName = "MWCompressorBlades"
+      processedTimestamp = int(time.time())
+
+
+     
 
       # folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2"
-      new_dict = {"chart file name": file_name,"vendor name" : folder_name, "chart date " : created_by,"frame stage ": frame_stage,"blade pn":blade_pn,"compressor pn": compressor_pn,"PO Number":po_num}
+      new_dict = {"hashId":hashId,"userName":userName,"processedTimestamp":processedTimestamp,"ChartFileName": file_name,"VendorName" : folder_name, "ChartDate " : created_at,"FrameStage ": frame_stage,"BladePartNumber":blade_pn,"CompressorPartNumber": compressor_pn,"PONumber":po_num}
 
 
       #merge two dict
@@ -119,11 +144,6 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
     print(e)
     print("file is not in desierd format")
     return False
-
-
-# result = extract_data_from_pdf("MW---423839925-2--7F HIFLOW R0  --1.pdf",folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2",created_at=None)
-# print(result)
-
 
 
 def pre_processing_pdf_dict(data:dict):
@@ -205,7 +225,43 @@ def pre_processing_excel_dict(data:dict):
         print(e)
         return False
 
-      
+
+
+
+
+
+    
+
+
+
+# result,val = extract_data_from_pdf(r"C:\Users\703324564\Desktop\MW_CHART_PROCESSING\files\pdf\MW---423839925-2--7F HIFLOW R0  --1.pdf",folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2",created_at=None)
+
+# # for key,vlaue in result.items():
+# #   print(key)
+
+
+# resss = pre_processing_pdf_dict(result)
+
+
+# for key,val in resss.items():
+#   print(key)
+
+# result,val = extract_data_from_excel(r"C:\Users\703324564\Desktop\MW_CHART_PROCESSING\files\excel\132B7467P001-20180719MW report.xlsx",folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2",created_at=None)
+ 
+# # for key,vlaue in result.items():
+# #   print(key)
+
+# resss = pre_processing_excel_dict(result)
+
+
+# print("---------------------------------")
+
+# for key,val in resss.items():
+#   print(key,"-----",val)
+#   print("   ")
+#   print('   ')
+
+
 def delete_file(file_path):
   """[delete file ]
   Args:
