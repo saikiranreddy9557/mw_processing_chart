@@ -1,4 +1,5 @@
-from processing.config import first_iteration,folder_ids_list
+
+from processing.config import first_iteration,folder_ids_list,bucket_name,region
 from processing.modules.box_utils import BOX_UTILS
 from processing.modules.processing_utils  import extract_data_from_pdf,extract_data_from_excel,delete_file,pre_processing_excel_dict,pre_processing_pdf_dict
 from processing.modules.dynamo_utils import AWS_Dynamo_Client
@@ -8,6 +9,10 @@ import sys
 import uuid
 
 import logging
+
+import os
+import sys
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -57,6 +62,8 @@ def lambda_handler(event, context):
                 #load the data to dynamodb table
                 
                 dynamo_obj.push_data(f_data)
+
+                dynamo_obj.upload_to_aws_s3(file_path, bucket_name, f_data["ChartFileName"])
                 
                 logger.info(f"psuhed data  from the file-id- {each_pdf_file_info[0]} file-name -{each_pdf_file_info[1]} vendor-name -{each_pdf_file_info[2]} to dynamo db")
                 logger.info(f"succefull read and upload of file-id- {each_pdf_file_info[0]} file-name -{each_pdf_file_info[1]} vendor-name -{each_pdf_file_info[2]}")
@@ -87,11 +94,15 @@ def lambda_handler(event, context):
                 #load the data to dynamodb table
                 
                 dynamo_obj.push_data(f_data)
+
+                dynamo_obj.upload_to_aws_s3(file_path, bucket_name, f_data["ChartFileName"])
                 
 
                 logger.info(f"psuhed data  from the file-id- {each_excel_file_info[0]} file-name -{each_excel_file_info[1]} vendor-name -{each_excel_file_info[2]} to dynamo db")
 
                 logger.info(f"succefull read and upload of file-id- {each_excel_file_info[0]} file-name -{each_excel_file_info[1]} vendor-name -{each_excel_file_info[2]}")
+
+                
                 #delete file downloaded
                 if delete_file(file_path):
                     pass
@@ -107,4 +118,5 @@ def lambda_handler(event, context):
 
 
 
+# lambda_handler("sai", "kiran")
 
