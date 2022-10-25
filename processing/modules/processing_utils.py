@@ -6,8 +6,14 @@ import pathlib
 import uuid
 
 import time
+import os
+import sys
 
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
+sys.path.append(BASE_DIR)
+
+import config
 
 
 # excel_file_path,folder_name,file_name,created_by,created_at
@@ -167,6 +173,8 @@ def pre_processing_pdf_dict(data:dict):
               temp_dict["PartNumber"]=data["PartNumber"][current_index]
               data["BladeData"].append(temp_dict)
           data["SerialNumber"] = str(data.pop("SerialNumber"))
+          file_name = data["ChartFileName"]
+          data["file_url"] = f"https://{config.bucket_name}.s3.{config.region}.amazonaws.com/{file_name}"
 
           for each_col in col_list:
             
@@ -187,6 +195,8 @@ def pre_processing_pdf_dict(data:dict):
               temp_dict["PartNumber"]=data["PartNumber"][current_index]
               data["BladeData"].append(temp_dict)
           data["SerialNumber"] = str(data.pop("SerialNumber"))
+          file_name = data["ChartFileName"]
+          data["file_url"] = f"https://{config.bucket_name}.s3.{config.region}.amazonaws.com/{file_name}"
 
           for each_col in col_list:
             
@@ -219,6 +229,8 @@ def pre_processing_excel_dict(data:dict):
             temp_dict["BladeSerialNumber"]=data["blade sn"][current_index]
             data["BladeData"].append(temp_dict)
         data["SerialNumber"] = str(data.pop("blade sn"))
+        file_name = data["ChartFileName"]
+        data["file_url"] = f"https://{config.bucket_name}.s3.{config.region}.amazonaws.com/{file_name}"
 
         for each_col in col_list:
             
