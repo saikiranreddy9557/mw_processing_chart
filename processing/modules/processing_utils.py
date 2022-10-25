@@ -78,6 +78,7 @@ def extract_data_from_excel(excel_file_path,folder_name= None,file_name=None,cre
   except Exception as e:
     print(e)
     print("file is not in desierd format")
+    raise e
     return False
 
 def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_at="2022-10-14 13:33:29",created_by=None):
@@ -93,12 +94,13 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
 
       #replace nan columns to None
       pdf = pdf.replace(np.nan, 'None', regex=True)
+      
 
 
       
       blade_pn = pdf.iloc[1][1]
       frame_stage = pdf.columns[1]
-      compressor_pn = pdf.iloc[0][1]
+      compressor_pn = pdf.iloc[0][1]      
       
       po_num =  pdf.columns[5].split("\r")[0]
       t2 = pdf[5:].copy()
@@ -143,6 +145,7 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
   except Exception as e:
     print(e)
     print("file is not in desierd format")
+    raise e
     return False
 
 
@@ -192,6 +195,7 @@ def pre_processing_pdf_dict(data:dict):
           return data
     except Exception as e:
       print(e)
+      raise e
       return False
 
 
@@ -223,6 +227,7 @@ def pre_processing_excel_dict(data:dict):
         return data
     except Exception as e:
         print(e)
+        raise e
         return False
 
 
@@ -277,6 +282,7 @@ def delete_file(file_path):
   except Exception as e:
     print(e)
     print("not able to  delete file on disk")
+    raise e
     return False
 
     
