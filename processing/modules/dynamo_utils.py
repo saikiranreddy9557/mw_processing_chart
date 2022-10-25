@@ -38,6 +38,7 @@ class AWS_Dynamo_Client:
 
                 self.dynamodb_session = boto3.resource('dynamodb',aws_access_key_id=access_key_id,aws_secret_access_key= secret_access_key,region_name=region_name,verify = False)
                 self.table =config.table_name
+                self.s3_client = boto3.client('s3', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key, region_name=region_name,verify =False )
 
             else:
                 self.dynamo_client = boto3.client('dynamodb')
@@ -85,16 +86,44 @@ class AWS_Dynamo_Client:
             print(e)
             raise e
                  
+
+    def upload_to_aws_s3(self,local_file_path, bucket_name, file_name):
+        
+
+        try:
+            v = self.s3_client.upload_file(local_file_path, bucket_name, file_name)
+            print("vv",v)
+            print("Upload Successful")
+            return True
+        except Exception as e:
+            print(e  )
+            print("The file was not found")
+            return False
+        
+# file_path = r"C:\Users\sensai\Desktop\mw_processing_chart\files\pdf\MW --423896001-1   7F High Output R0.pdf"
+# bucket_name = "sample--bucket--doc"
+# s3_file_name = "helm_upload"
+# uploaded = upload_to_(file_path, bucket_name, s3_file_name)
+# print("sss",uploaded)
+
 # acces_key = config.access_key
 # secret_key =config.secret_key
 # print(acces_key,secret_key)
-# obj =AWS_Dynamo_Client(access_key_id=config.access_key,secret_access_key=config.secret_key,region_name=config.region)
+obj =AWS_Dynamo_Client(access_key_id=config.access_key,secret_access_key=config.secret_key,region_name=config.region)
 # # obj.push_data
 # # obj.dynamo_client
 # # ddb_exceptions = obj.dynamo_client.exceptions
 
 # obj.push_data("sa")
 # print(ddb_exceptions.messsage)
+
+
+        
+file_path = r"C:\Users\sensai\Desktop\mw_processing_chart\files\pdf\MW --423896001-1   7F High Output R0.pdf"
+bucket_name = "sample--bucket--doc"
+s3_file_name = "sample2.pdf"
+uploaded =obj.upload_to_aws_s3(file_path, bucket_name, s3_file_name)
+print("sss",uploaded)
 
 
 
