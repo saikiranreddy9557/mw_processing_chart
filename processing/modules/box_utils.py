@@ -10,6 +10,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 sys.path.append(BASE_DIR)
 
 import config
+import datetime
 
 
 
@@ -28,7 +29,7 @@ class BOX_UTILS:
     """class to connect and perfrom opertions on box folder
     """
 
-    def __init__(self,user_id=config.user_id) :
+    def __init__(self,start_date=None,end_date=None,user_id=config.user_id) :
         """[constructor]
         Args:
             user_id ([str], optional): [description]. Defaults to config.user_id.
@@ -36,6 +37,8 @@ class BOX_UTILS:
         self.cred_path = BASE_PATH+r"\config.json"
         # self.cred_path= r"C:\Users\703324564\Desktop\MW_CHART_PROCESSING\config.json"
         self.user_id = user_id
+        self.start_date = start_date
+        self.end_date = end_date
 
     def box_auth(self,user_id=None):
 
@@ -61,6 +64,22 @@ class BOX_UTILS:
 
         except Exception as e:
             print(e)
+            raise e
+
+    def box_file_in_data_range(self,user_client,file_id):
+        file = user_client.file(file_id).get()
+        #2022-10-13
+        file_created_at = file.response_object["created_at"].split("T")[0]
+
+        
+        TODAY_CHECK = datetime.datetime.strptime(file_created_at, "%Y-%m-%d")
+        start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+        end = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
+
+        if start <= TODAY_CHECK <= end:
+            return True
+        else:
+            return False
 
     def box_read_folder_content(self,user_client,folder_id):
 
@@ -74,15 +93,19 @@ class BOX_UTILS:
         try:
             items = user_client.folder(folder_id=folder_id).get_items()
             for item in items:
+                
                 # print(f'{item.type.capitalize()} {item.id} is named "{item.name}"')
                 if item.name[-3:] == "pdf":
-                    file_ids["pdf"].append((item.id,item.name,folder_name)) 
+                    if self.box_file_in_data_range(user_client,item.id):
+                        file_ids["pdf"].append((item.id,item.name,folder_name)) 
                 if item.name[-4:] == "xlsx":
-                    file_ids["xlsx"].append((item.id,item.name,folder_name))
+                    if self.box_file_in_data_range(user_client,item.id):
+                        file_ids["xlsx"].append((item.id,item.name,folder_name))
 
             return file_ids
         except Exception as e:
             print(e)
+            raise e
 
     def download_file(self,user_client,file_info):
         """[dwonlaoing the file form the box folder at pre defined path]
@@ -109,6 +132,7 @@ class BOX_UTILS:
             # file_name = file_info.name
         except Exception as e:
             print(e)
+            raise e
        
         try:
             
@@ -120,6 +144,7 @@ class BOX_UTILS:
                 return excel_file_path,file_meta_data
         except Exception as e:
             print(e)
+            raise e
         
         try:
             # print("inside pdf")
@@ -133,6 +158,7 @@ class BOX_UTILS:
                 return pdf_file_path,file_meta_data
         except Exception as e:
             print(e)
+            raise e
 
     def get_all_files_in_root(self,user_client):
         """[ all the content in the root folder]
@@ -149,10 +175,11 @@ class BOX_UTILS:
             return items
         except Exception as e:
             print(e)
+            raise e
 
 
 # print("start")
-# obj = BOX_UTILS()
+# obj = BOX_UTILS(start_date="2022-10-15",end_date="2022-10-17")
 # print(obj)
 
 # auth_obj = obj.box_auth()
@@ -169,7 +196,28 @@ class BOX_UTILS:
 #     folder_data = obj.box_read_folder_content(auth_obj,each_flder)
 #     print(folder_data)
 
-# obj.get_all_files_in_root(auth_obj)
+
+# 1039949940900
+# file = auth_obj.file('1039949940900').get()
+# print(type(file.response_object))
+# print(file.response_object.keys())
+# print(file.response_object["created_at"])
+# print(file.response_object["content_created_at"])
+
+# print(file.response_object["created_at"].split("T")[0])
+# print(json.dumps(file.response_object))
+
+# # obj.get_all_files_in_root(auth_obj)
+
+# import datetime
+# TODAY_CHECK = datetime.datetime.strptime("2022-10-13", "%Y-%m-%d")
+# start = datetime.datetime.strptime("2022-10-14", "%Y-%m-%d")
+# end = datetime.datetime.strptime("2022-10-17", "%Y-%m-%d")
+
+# if start <= TODAY_CHECK <= end:
+#     print("ok")
+# else:
+#     print("no")
 
 
 
