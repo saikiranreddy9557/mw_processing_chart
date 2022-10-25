@@ -1,6 +1,8 @@
 import boto3
 import json
 import os
+from decimal import Decimal
+
 
 from distutils.command.upload import upload
 import sys
@@ -45,6 +47,7 @@ class AWS_Dynamo_Client:
                 self.table =table_name
         except Exception as e:
             print(e)
+            raise e
                 
 
 
@@ -62,6 +65,7 @@ class AWS_Dynamo_Client:
             #print(tables)
         except Exception as e:
             print(e)
+            raise e
 
     def push_data(self,data):
         """[performing ucreate operation into dynamodb table]
@@ -72,21 +76,15 @@ class AWS_Dynamo_Client:
         """
         try:     
             table = self.dynamodb_session.Table(self.table)
-            item={  'chart_data_hash':"ssskskskss",
-                    'id': 1,
-                    'sample':["assa","@2333",None],
-                    'title': 'my-document-title',
-                    'content': 'some-content',
-                }
-            response = table.put_item(Item=item)
-            # print(response)
-
-            # print("upload success")
+        
+            data = json.loads(json.dumps(data), parse_float=Decimal)
+            response = table.put_item(Item=data)
 
             return True
         except Exception as e:
             print(e)
-            return False     
+            raise e
+                 
 # acces_key = config.access_key
 # secret_key =config.secret_key
 # print(acces_key,secret_key)
