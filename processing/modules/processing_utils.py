@@ -1,122 +1,361 @@
-
-from processing.config import first_iteration,folder_ids_list,bucket_name,region
-from processing.modules.box_utils import BOX_UTILS
-from processing.modules.processing_utils  import extract_data_from_pdf,extract_data_from_excel,delete_file,pre_processing_excel_dict,pre_processing_pdf_dict
-from processing.modules.dynamo_utils import AWS_Dynamo_Client
-from processing.modules.logging_utils import LoggingUtils
-import sys
-
+import numpy as np
+import pandas as pd
+import json
+import pathlib
 import uuid
 
-import logging
-
+import time
 import os
 import sys
+import camelot
 
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-def lambda_handler(event, context):
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+
+sys.path.append(BASE_DIR)
+
+import config
+
+
+# excel_file_path,folder_name,file_name,created_by,created_at
+def extract_data_from_excel(excel_file_path,folder_name= None,file_name=None,created_at ="2022-10-14 13:33:29",created_by = "2022-10-14 13:33:29" ):
+  """[extract data from the excel file ]
+  Args:
+      excel_file_path ([str]): [file path to excel]
+      folder_name ([str], optional): [folder name that is also vendor name]. Defaults to None.
+      file_name ([file name], optional): [file name]. Defaults to None.
+      created_at ([str], optional): [time stamp when teh file is created]. Defaults to None.
+      created_by ([type], optional): [description]. Defaults to None.
+  Returns:
+      [dict]: [all the file data ]
+  """
+
+  try:
     
-    first_iteration= None
+      #load excel file
+      xl = pd.ExcelFile(excel_file_path)
+      
+      file_sheet_names = xl.sheet_names
+      #getting sheets name list
+      
+      #readind and convertinf each sheet to a dataframe
+      t1 = pd.read_excel(excel_file_path, sheet_name=file_sheet_names[0], index_col=0)
+      t2 = pd.read_excel(excel_file_path, sheet_name=file_sheet_names[1], index_col=0)
+      
+      #replace nan to None
+      t1 = t1.replace(np.nan, 'None', regex=True)
+      t2 = t2.replace(np.nan, 'None', regex=True)
 
+      #fetching additonal value from the first sheet of excel
+      stage = t1.loc['级数（Stage）：'].values[0]
+    
+      po_num = t1.loc['PO  Number:'].values[0]
+    
+      blade_pn = t1.loc['部套号（Drawing Number）：'].values[0]
+      compressor_pn = t1.loc['台份号（Product Number）：'].values[0]
+      
+      #renaming columns in sheet two columns in dataframe
+      t2.rename(columns = {'叶片钢印号[Steel Seal No.]':'blade sn'}, inplace = True)
+      rename_dict = {'称重编号[Weight No.]':'Weight No','叶片类型[Blade Type]':'Blade Type','设计重量(克)[Design Weight](g)':'Design Weight','叶根重量(克)[Blade Root Weight]（g)':'Blade Root Weight','叶冠重量(克)[Blade Leaf Weight]（g)':'Blade Leaf Weight','实测重量(克)[Actual Weight]（g)':'Actual Weight','实测力矩(克·英寸)[Actual Moment](g·inch)':'Actual Moment'}
+      t2.rename(columns = rename_dict , inplace = True)
+      
+
+
+      #creating new dict with first sheet values
+      #new_dict = {"chart file name": file_name,"vendor name" : folder_name, "chart date " : created_at,"frame stage ": stage,"blade pn":blade_pn,"compressor pn": compressor_pn,"PO Number":po_num}   
+      
+      hashId= str(uuid.uuid4())
+      userName = "MWCompressorBlades"
+      processedTimestamp = int(time.time())
+
+
+     
+
+      # folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2"
+      new_dict = {"hashId":hashId,"userName":userName,"processedTimestamp":processedTimestamp,"ChartFileName": file_name,"VendorName" : folder_name, "ChartDate " : created_at,"FrameStage ": stage,"BladePartNumber":blade_pn,"CompressorPartNumber": compressor_pn,"PONumber":po_num}
+
+      #convert df to dict
+      t2_dict = t2.to_dict('list')
+
+      #merge two dict
+      new_dict.update(t2_dict)
+
+
+      return new_dict,excel_file_path
+  except Exception as e:
+    print(e)
+    print("file is not in desierd format")
+    raise e
+    return False
+
+def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_at=None):
+       
+  """[extracts data from the pdf files]
+  Returns:
+      [dict]: [all the file data]
+  """
+
+  try:
+      #read and converting pdf to dataframe
+      abc = camelot.read_pdf(pdf_file_path)
+
+      #replace nan columns to None
+      
+      pdf = abc[0].df
+      pdf = pdf.replace("", 'None', regex=True)
+
+    
+      
+      blade_pn = pdf.iloc[3][1]
+      frame_stage = pdf.iloc[1][1]
+      compressor_pn = pdf.iloc[2][1]      
+      
+      po_num =  pdf.iloc[1][5].split("\n")[0]
+      t2 = pdf[5:].copy()
+
+
+      t2 = pdf.iloc[7:]
+      #selecting only required columns
+      df_new = t2.iloc[:, [0,1,2,3,4,5]]
+
+      #convert dataframe into dict
+      t2_dict = df_new.to_dict('list')
+
+      print(t2_dict.keys())
+
+      new_keys = ['PositionNumber','SerialNumber','Moment','TotalWeight','PartNumber','Reaction']
+      t2_dict = dict(zip(new_keys, list(t2_dict.values())))
+      
+      
+      hashId= str(uuid.uuid4())
+      userName = "MWCompressorBlades"
+      processedTimestamp = int(time.time())
+
+
+     
+
+      # folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2"
+      new_dict = {"hashId":hashId,"userName":userName,"processedTimestamp":processedTimestamp,"ChartFileName": file_name,"VendorName" : folder_name, "ChartDate " : created_at,"FrameStage ": frame_stage,"BladePartNumber":blade_pn,"CompressorPartNumber": compressor_pn,"PONumber":po_num}
+
+
+      #merge two dict
+      new_dict.update(t2_dict)
+      return new_dict,pdf_file_path 
+  except Exception as e:
+    print(e)
+    print("file is not in desierd format")
+    raise e
+    return False
+
+
+# def extract_data_from_pdf_1(pdf_file_path,folder_name=None,file_name=None,created_at="2022-10-14 13:33:29",created_by=None):
    
+#   """[extracts data from the pdf files]
+#   Returns:
+#       [dict]: [all the file data]
+#   """
+
+#   try:
+#       #read and converting pdf to dataframe
+#       pdf = tabula.read_pdf(pdf_file_path, pages='all')[0]
+
+#       #replace nan columns to None
+#       pdf = pdf.replace(np.nan, 'None', regex=True)
+      
+
+
+      
+#       blade_pn = pdf.iloc[1][1]
+#       frame_stage = pdf.columns[1]
+#       compressor_pn = pdf.iloc[0][1]      
+      
+#       po_num =  pdf.columns[5].split("\r")[0]
+#       t2 = pdf[5:].copy()
+      
+#       try:
+#         po_num = int(po_num)
+#       except:
+#         po_num = None
+#       if po_num:
+#         #rename of columns
+        
+#         rename_dict = {'GE叶片名称:\rStages':'PositionNumber','7F High Output R0':'SerialNumber','组别号:\rWTB Group NO.':'Moment','Y1-1':'TotalWeight','423896001\rline 1':'PartNumber','PO:':'Reaction'}                          
+#         t2.rename(columns = rename_dict , inplace = True)
+        
+#       else:
+#         po_num = None
+#         #rename of columns
+#         rename_dict = {'GE叶片名称:\rStages':'PositionNumber','7F HIFLOW R0':'SerialNumber','组别号:\rWTB Group NO.':'Moment','P1':'TotalWeight','旋向\rDIRETION OF\rROTATION':'Reaction','CW':'PartNumber'}
+#         t2.rename(columns = rename_dict , inplace = True)   
+      
+
+#       #selecting only required columns
+#       df_new = t2.iloc[:, [0,1,2,3,4,5]]
+
+#       #convert dataframe into dict
+#       t2_dict = df_new.to_dict('list')
+      
+#       hashId= str(uuid.uuid4())
+#       userName = "MWCompressorBlades"
+#       processedTimestamp = int(time.time())
+
+
+     
+
+#       # folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2"
+#       new_dict = {"hashId":hashId,"userName":userName,"processedTimestamp":processedTimestamp,"ChartFileName": file_name,"VendorName" : folder_name, "ChartDate " : created_at,"FrameStage ": frame_stage,"BladePartNumber":blade_pn,"CompressorPartNumber": compressor_pn,"PONumber":po_num}
+
+
+#       #merge two dict
+#       new_dict.update(t2_dict)
+#       return new_dict,pdf_file_path 
+#   except Exception as e:
+#     print(e)
+#     print("file is not in desierd format")
+#     raise e
+#     return False
+
+
+def pre_processing_pdf_dict(data:dict):
+
     try:
-        first_iteration = True
-        logger.info(f"started reading files from the box folder")
 
-        for each_folder_id in folder_ids_list:
-            logger.info(f"making connection to box folder")
-            box_obj = BOX_UTILS(start_date="2022-10-10",end_date="2022-10-17")
-            box_con = box_obj.box_auth()
+      data["BladeData"]= []
+      if data["PONumber"] == None:
+          # print(dic_val["Serial Number"])
+          col_list = ["PositionNumber","Moment","TotalWeight","Reaction","PartNumber"]
+          for current_index in range(len(data['SerialNumber'])):
+              temp_dict = {}
+              temp_dict["PositionNumber"]=data["PositionNumber"][current_index]
+              temp_dict["SerialNumber"]=data["SerialNumber"][current_index]
+              temp_dict["MOMENT"]=data["Moment"][current_index]
+              temp_dict["TotalWeight"]=data["TotalWeight"][current_index]
+              temp_dict["Reaction"]=data["Reaction"][current_index]
+              temp_dict["PartNumber"]=data["PartNumber"][current_index]
+              data["BladeData"].append(temp_dict)
+          data["SerialNumber"] = str(data.pop("SerialNumber"))
+          file_name = data["ChartFileName"]
+          data["file_url"] = f"https://{config.bucket_name}.s3.{config.region}.amazonaws.com/{file_name}"
+
+          for each_col in col_list:
             
-            logger.info(f"started reading files from the box folder id {each_folder_id}")
+              del data[each_col]
 
-            #returns dict 
-            #{"pdf":[(item.id,item.name,folder_name)],"xlsx":[(item.id,item.name,folder_name)]}
-            folder_content = box_obj.box_read_folder_content(box_con,each_folder_id)
-            logger.info(f"completed reading files from the box folder content form folder-id {each_folder_id}")
+          return data
 
-            # retry =0
-            dynamo_obj = AWS_Dynamo_Client()
+      if data["PONumber"]:
+          # print(dic_val["Serial Number"])
+          col_list = ["PositionNumber","Moment","TotalWeight","Reaction","PartNumber"]
+          for current_index in range(len(data['SerialNumber'])):
+              temp_dict = {}
+              temp_dict["PositionNumber"]=data["PositionNumber"][current_index]
+              temp_dict["SerialNumber"]=data["SerialNumber"][current_index]
+              temp_dict["MOMENT"]=data["Moment"][current_index]
+              temp_dict["TotalWeight"]=data["TotalWeight"][current_index]
+              temp_dict["Reaction"]=data["Reaction"][current_index]
+              temp_dict["PartNumber"]=data["PartNumber"][current_index]
+              data["BladeData"].append(temp_dict)
+          data["SerialNumber"] = str(data.pop("SerialNumber"))
+          file_name = data["ChartFileName"]
+          data["file_url"] = f"https://{config.bucket_name}.s3.{config.region}.amazonaws.com/{file_name}"
+
+          for each_col in col_list:
             
+              del data[each_col]
 
-            for each_pdf_file_info in folder_content["pdf"]:
-                # '1039949940900', '132B7467P001-20180719MW report.xlsx', 'test-excel-1'
-                logger.info(f"started reading data from the id- {each_pdf_file_info[0]} file-name -{each_pdf_file_info[1]} vendor-name -{each_pdf_file_info[2]}")
-                
-                # retry = 0
-                
-                #download the file to read it
-                #file_path,file_meta_data={file_id ,file_name,folder_name,created_at,file_name}
-                pdf_file_path ,file_data= box_obj.download_file(box_con,each_pdf_file_info)
-                
-            
-
-                #returns dict containign all the data in file,file_path
-                file_data,file_path = extract_data_from_pdf(pdf_file_path,folder_name=file_data["folder_name"],file_name=file_data["file_name"],created_at=file_data["created_at"])
-
-                f_data = pre_processing_pdf_dict(file_data)
-                
-                logger.info(f"completed reading data from the file-id- {each_pdf_file_info[0]} file-name -{each_pdf_file_info[1]} vendor-name -{each_pdf_file_info[2]}")
-                #load the data to dynamodb table
-                
-                dynamo_obj.push_data(f_data)
-
-                dynamo_obj.upload_to_aws_s3(file_path, bucket_name, f_data["ChartFileName"])
-                
-                logger.info(f"psuhed data  from the file-id- {each_pdf_file_info[0]} file-name -{each_pdf_file_info[1]} vendor-name -{each_pdf_file_info[2]} to dynamo db")
-                logger.info(f"succefull read and upload of file-id- {each_pdf_file_info[0]} file-name -{each_pdf_file_info[1]} vendor-name -{each_pdf_file_info[2]}")
-                #delete file downloaded
-                if delete_file(pdf_file_path):
-                    pass
-
-                logger.info(f"succefull read and upload of data from folder {each_folder_id}")
+          return data
+    except Exception as e:
+      print(e)
+      raise e
+      return False
 
 
-            for each_excel_file_info in folder_content["xlsx"]:
 
+def pre_processing_excel_dict(data:dict):
 
-                logger.info(f"started reading data from the id- {each_excel_file_info[0]} file-name -{each_excel_file_info[1]} vendor-name -{each_excel_file_info[2]}")
-                #download the file to read it
-                #file_path,file_meta_data={file_id ,file_name,folder_name,created_at,file_name}
-                excel_file_path ,file_data= box_obj.download_file(box_con,each_excel_file_info)
+    try:
     
+        data["BladeData"]= []
+        # print(dic_val["Serial Number"])
+        col_list = ["Weight No","Blade Type","Design Weight","Blade Root Weight","Blade Leaf Weight","Actual Weight","Actual Moment"]
+        for current_index in range(len(data['blade sn'])):
+            temp_dict = {}
+            temp_dict["WeightNo"]=data["Weight No"][current_index]
+            temp_dict["BladeType"]=data["Blade Type"][current_index]
+            temp_dict["DesignWeight"]=data["Design Weight"][current_index]
+            temp_dict["BladeRootWeight"]=data["Blade Root Weight"][current_index]
+            temp_dict["BladeLeafWeight"]=data["Blade Leaf Weight"][current_index]
+            temp_dict["ActualWeight"]=data["Actual Weight"][current_index]
+            temp_dict["ActualMoment"]=data["Actual Moment"][current_index]
+            temp_dict["BladeSerialNumber"]=data["blade sn"][current_index]
+            data["BladeData"].append(temp_dict)
+        data["SerialNumber"] = str(data.pop("blade sn"))
+        file_name = data["ChartFileName"]
+        data["file_url"] = f"https://{config.bucket_name}.s3.{config.region}.amazonaws.com/{file_name}"
+
+        for each_col in col_list:
             
+            del data[each_col]
 
-                #returns dict containign all the data in file,file_path
-                file_data,file_path = extract_data_from_excel(excel_file_path,folder_name=file_data["folder_name"],file_name=file_data["file_name"],created_at=file_data["created_at"])
-
-                f_data = pre_processing_excel_dict(file_data)
-                
-                logger.info(f"completed reading data from the file-id- {each_excel_file_info[0]} file-name -{each_excel_file_info[1]} vendor-name -{each_excel_file_info[2]}")
-
-                #load the data to dynamodb table
-                
-                dynamo_obj.push_data(f_data)
-
-                dynamo_obj.upload_to_aws_s3(file_path, bucket_name, f_data["ChartFileName"])
-                
-
-                logger.info(f"psuhed data  from the file-id- {each_excel_file_info[0]} file-name -{each_excel_file_info[1]} vendor-name -{each_excel_file_info[2]} to dynamo db")
-
-                logger.info(f"succefull read and upload of file-id- {each_excel_file_info[0]} file-name -{each_excel_file_info[1]} vendor-name -{each_excel_file_info[2]}")
-
-                
-                #delete file downloaded
-                if delete_file(file_path):
-                    pass
-
-
-            logger.info(f"succefull read and upload of data from folder {each_folder_id}")
-
-        return True
+        return data
     except Exception as e:
         print(e)
-
-        sys.exit()
-
-
+        raise e
+        return False
 
 
 
+
+
+
+    
+
+
+
+# result,val = extract_data_from_pdf(r"C:\Users\703324564\Desktop\MW_CHART_PROCESSING\files\pdf\MW---423839925-2--7F HIFLOW R0  --1.pdf",folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2",created_at=None)
+
+# # for key,vlaue in result.items():
+# #   print(key)
+
+
+# resss = pre_processing_pdf_dict(result)
+
+
+# for key,val in resss.items():
+#   print(key)
+
+# result,val = extract_data_from_excel(r"C:\Users\703324564\Desktop\MW_CHART_PROCESSING\files\excel\132B7467P001-20180719MW report.xlsx",folder_name="sampl-vendor name",file_name="file name",created_by="2022/2/2",created_at=None)
+ 
+# # for key,vlaue in result.items():
+# #   print(key)
+
+# resss = pre_processing_excel_dict(result)
+
+
+# print("---------------------------------")
+
+# for key,val in resss.items():
+#   print(key,"-----",val)
+#   print("   ")
+#   print('   ')
+
+
+def delete_file(file_path):
+  """[delete file ]
+  Args:
+      file_path ([str]): [file path]
+  Returns:
+      [Bool]: [True or false]
+  """
+  try:
+    file = pathlib.Path(file_path)
+    # Calling the unlink method on the path
+    file.unlink()
+    return True
+  except Exception as e:
+    print(e)
+    print("not able to  delete file on disk")
+    raise e
+    return False
+
+    
