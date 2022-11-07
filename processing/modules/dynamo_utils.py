@@ -88,16 +88,17 @@ class AWS_Dynamo_Client:
             raise e
                  
 
-    def upload_to_aws_s3(self,local_file_path, bucket_name, file_name):
+    def upload_to_aws_s3(self,local_file_path, bucket_name, file_name,execution_id =None):
         
 
         try:
-            v = self.s3_client.upload_file(local_file_path, bucket_name, file_name)
+            path = "sample3/"+execution_id+"/"+file_name
+            v = self.s3_client.upload_file(local_file_path, bucket_name, path)
             print("vv",v)
             print("Upload Successful")
             return True
         except Exception as e:
-            print(e  )
+            print(e)
             print("The file was not found")
             return False
         
@@ -110,7 +111,7 @@ class AWS_Dynamo_Client:
 # acces_key = config.access_key
 # secret_key =config.secret_key
 # print(acces_key,secret_key)
-#obj =AWS_Dynamo_Client(access_key_id=config.access_key,secret_access_key=config.secret_key,region_name=config.region)
+# obj =AWS_Dynamo_Client(access_key_id=config.access_key,secret_access_key=config.secret_key,region_name=config.region)
 # # obj.push_data
 # # obj.dynamo_client
 # # ddb_exceptions = obj.dynamo_client.exceptions
@@ -122,7 +123,7 @@ class AWS_Dynamo_Client:
         
 # file_path = r"C:\Users\sensai\Desktop\mw_processing_chart\files\pdf\MW --423896001-1   7F High Output R0.pdf"
 # bucket_name = "sample--bucket--doc"
-# s3_file_name = "sample2.pdf"
+# s3_file_name = "sample3/sample2.pdf"
 # uploaded =obj.upload_to_aws_s3(file_path, bucket_name, s3_file_name)
 # print("sss",uploaded)
 
