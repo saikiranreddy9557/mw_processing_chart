@@ -8,6 +8,7 @@ import time
 import os
 import sys
 import camelot
+import camelot
 
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
@@ -85,11 +86,11 @@ def extract_data_from_excel(excel_file_path,folder_name= None,file_name=None,cre
   except Exception as e:
     print(e)
     print("file is not in desierd format")
-    raise e
+    
     return False
 
 def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_at=None):
-       
+   
   """[extracts data from the pdf files]
   Returns:
       [dict]: [all the file data]
@@ -111,6 +112,11 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
       compressor_pn = pdf.iloc[2][1]      
       
       po_num =  pdf.iloc[1][5].split("\n")[0]
+      try:
+        po_num = int(po_num)
+      except:
+        po_num = None
+      
       t2 = pdf[5:].copy()
 
 
@@ -123,7 +129,7 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
 
       print(t2_dict.keys())
 
-      new_keys = ['PositionNumber','SerialNumber','Moment','TotalWeight','PartNumber','Reaction']
+      new_keys = ['PositionNumber','SerialNumber','Moment','TotalWeight','Reaction','PartNumber']
       t2_dict = dict(zip(new_keys, list(t2_dict.values())))
       
       
@@ -144,8 +150,9 @@ def extract_data_from_pdf(pdf_file_path,folder_name=None,file_name=None,created_
   except Exception as e:
     print(e)
     print("file is not in desierd format")
-    raise e
+    
     return False
+
 
 
 # def extract_data_from_pdf_1(pdf_file_path,folder_name=None,file_name=None,created_at="2022-10-14 13:33:29",created_by=None):
@@ -357,5 +364,30 @@ def delete_file(file_path):
     print("not able to  delete file on disk")
     raise e
     return False
+
+
+
+def validation_check(po_number):
+    str_list =["A","B","C","D","E","T"]
+
+    str_list_1=["P","G"]
+    try:
+        int(po_number[:3])
+
+        if po_number[3:4] not in  str_list:
+            return False
+
+        int(po_number[4:8])
+        if po_number[8:9] not in  str_list_1:
+            return False
+        lenght = len(po_number[9:])
+        if not (lenght >= 2 and lenght <= 4):
+            return False
+        int(po_number[9:])
+        return True
+    except:
+        return False
+
+
 
     
