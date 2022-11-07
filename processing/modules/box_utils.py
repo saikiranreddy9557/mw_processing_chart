@@ -37,8 +37,8 @@ class BOX_UTILS:
         self.cred_path = BASE_PATH+r"\config.json"
         # self.cred_path= r"C:\Users\703324564\Desktop\MW_CHART_PROCESSING\config.json"
         self.user_id = user_id
-        self.start_date = start_date
-        self.end_date = end_date
+        self.start_date = None
+        self.end_date = None
 
     def box_auth(self,user_id=None):
 
@@ -66,27 +66,60 @@ class BOX_UTILS:
             print(e)
             raise e
 
-    def box_file_in_data_range(self,user_client,file_id):
+    def box_file_in_data_range(self,user_client,file_id,previous_timestamp=None):
         file = user_client.file(file_id).get()
-        #2022-10-13
-        file_created_at = file.response_object["created_at"].split("T")[0]
+        #2022-10-13 23:05:25
+
+        created_at = file.response_object["created_at"].split("T")
+        created_at[1] = created_at[1][:8]
+        created_at = " ".join(created_at)
+        
 
         
-        TODAY_CHECK = datetime.datetime.strptime(file_created_at, "%Y-%m-%d")
-        start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        end = datetime.datetime.strptime(self.end_date, "%Y-%m-%d")
+        TODAY_CHECK = datetime.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+        
+        start = datetime.datetime.strptime(previous_timestamp, "%Y-%m-%d %H:%M:%S")
+
+       
+
+        if TODAY_CHECK > start:
+            return True
+        else:
+            return False
+        
+    
+    def box_file_in_data_range_legacy(self,user_client,file_id,start,end):
+        file = user_client.file(file_id).get()
+        #2022-10-13 23:05:25
+
+        created_at = file.response_object["created_at"].split("T")
+        created_at[1] = created_at[1][:8]
+        created_at = " ".join(created_at)
+        
+
+        
+        TODAY_CHECK = datetime.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+        
+        start = datetime.datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+        end = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
+
+       
 
         if start <= TODAY_CHECK <= end:
             return True
         else:
             return False
 
-    def box_read_folder_content(self,user_client,folder_id):
+
+    def box_read_folder_content(self,user_client,folder_id,previous_timestap):
+
 
         """[read all content of the folder and return the pdf andd excel files]
         Returns:
             [dict]: [file meta data of both pdf and excel]
         """
+        print(previous_timestap)
+        print("dddddddddddddddddddddddd")
         folder = user_client.folder(folder_id=folder_id).get()
         folder_name = folder.name
         file_ids={"pdf":[],"xlsx":[]}
@@ -96,10 +129,13 @@ class BOX_UTILS:
                 
                 # print(f'{item.type.capitalize()} {item.id} is named "{item.name}"')
                 if item.name[-3:] == "pdf":
-                    if self.box_file_in_data_range(user_client,item.id):
+                    print("inside pdf")
+                    if self.box_file_in_data_range(user_client,item.id,previous_timestap):
                         file_ids["pdf"].append((item.id,item.name,folder_name)) 
                 if item.name[-4:] == "xlsx":
-                    if self.box_file_in_data_range(user_client,item.id):
+                    
+                    print("indies excel")
+                    if self.box_file_in_data_range(user_client,item.id,previous_timestap):
                         file_ids["xlsx"].append((item.id,item.name,folder_name))
 
             return file_ids
@@ -176,13 +212,68 @@ class BOX_UTILS:
         except Exception as e:
             print(e)
             raise e
+        
+        
+    def box_file_in_data_range_legacy(self,user_client,file_id,start,end):
+        file = user_client.file(file_id).get()
+        #2022-10-13 23:05:25
+
+        created_at = file.response_object["created_at"].split("T")
+        created_at[1] = created_at[1][:8]
+        created_at = " ".join(created_at)
+        
+
+        
+        TODAY_CHECK = datetime.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+        
+        start = datetime.datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+        end = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
+
+       
+
+        if start >= TODAY_CHECK < end:
+            return True
+        else:
+            return False
+        
+        
+    def box_read_folder_content_legacy(self,user_client,folder_id,start,end):
+    
+
+        """[read all content of the folder and return the pdf andd excel files]
+        Returns:
+            [dict]: [file meta data of both pdf and excel]
+        """
+       
+        folder = user_client.folder(folder_id=folder_id).get()
+        folder_name = folder.name
+        file_ids={"pdf":[],"xlsx":[]}
+        try:
+            items = user_client.folder(folder_id=folder_id).get_items()
+            for item in items:
+                
+                # print(f'{item.type.capitalize()} {item.id} is named "{item.name}"')
+                if item.name[-3:] == "pdf":
+                    print("inside pdf")
+                    if self.box_file_in_data_range_legacy(user_client,item.id,start,end):
+                        file_ids["pdf"].append((item.id,item.name,folder_name)) 
+                if item.name[-4:] == "xlsx":
+                    
+                    print("indies excel")
+                    if self.box_file_in_data_range(user_client,item.id,start,end):
+                        file_ids["xlsx"].append((item.id,item.name,folder_name))
+
+            return file_ids
+        except Exception as e:
+            print(e)
+            raise e
 
 
-# print("start")
-# obj = BOX_UTILS(start_date="2022-10-15",end_date="2022-10-17")
-# print(obj)
+print("start")
+obj = BOX_UTILS(start_date="2022-10-15",end_date="2022-10-17")
+print(obj)
 
-# auth_obj = obj.box_auth()
+auth_obj = obj.box_auth()
 
 # #excel_file_path,file_meta_data
 # file_path ,file_meta_data = obj.download_file(auth_obj,('1039949940900', '132B7467P001-20180719MW report.xlsx', 'test-excel-1'))
@@ -200,24 +291,33 @@ class BOX_UTILS:
 # 1039949940900
 # file = auth_obj.file('1039949940900').get()
 # print(type(file.response_object))
-# print(file.response_object.keys())
+# # print(file.response_object.keys())
 # print(file.response_object["created_at"])
-# print(file.response_object["content_created_at"])
+# # print(file.response_object["content_created_at"])
 
-# print(file.response_object["created_at"].split("T")[0])
-# print(json.dumps(file.response_object))
+# created_at = file.response_object["created_at"].split("T")
+# print(created_at,"ccc")
+# created_at[1] = created_at[1][:8]
+# # created_at = " ".join(created_at[0],created_at[1][:8])
+# print(created_at)
+# created_at = " ".join(created_at)
+# print(created_at)
+# # print(json.dumps(file.response_object))
 
-# # obj.get_all_files_in_root(auth_obj)
+# # # obj.get_all_files_in_root(auth_obj)
 
 # import datetime
-# TODAY_CHECK = datetime.datetime.strptime("2022-10-13", "%Y-%m-%d")
-# start = datetime.datetime.strptime("2022-10-14", "%Y-%m-%d")
-# end = datetime.datetime.strptime("2022-10-17", "%Y-%m-%d")
+# TODAY_CHECK = datetime.datetime.strptime("2022-10-11 00:00:01", "%Y-%m-%d %H:%M:%S")
+# print(TODAY_CHECK)
+# # start = datetime.datetime.strptime("2022-10-14", "%Y-%m-%d")
+# start = datetime.datetime.strptime("2022-10-11 00:00:00", "%Y-%m-%d %H:%M:%S")
 
-# if start <= TODAY_CHECK <= end:
+# if TODAY_CHECK > start:
 #     print("ok")
 # else:
 #     print("no")
+
+
 
 
 
